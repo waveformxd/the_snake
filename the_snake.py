@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from random import choice
 
 import pygame
@@ -58,7 +57,6 @@ class GameObject:
         self.body_color = SNAKE_COLOR
         self.image = None
 
-    @abstractmethod
     def draw(self, surface):
         """Отрисовывает объект на игровой поверхности."""
         screen.blit(self.image, (self.position[0], self.position[1]))
@@ -78,6 +76,13 @@ class GameObject:
             )
             result.append((res_1, res_2))
         return result
+
+    def randomize_positions(self, num: int = 1):
+        """
+        Генерирует случайные координаты на сетке игрового
+        поля для расположения на них нескольких объектов.
+        """
+        self.positions = self._random_positions_generator(1, num)
 
 
 class Apple(GameObject):
@@ -162,26 +167,16 @@ class Snake(GameObject):
                 screen.blit(self.body_image, (position[0], position[1]))
 
         # Отрисовка головы змейки
-        if self.direction == RIGHT:
-            screen.blit(
-                self.head_image_right,
-                (self.positions[0][0], self.positions[0][1])
-            )
-        elif self.direction == DOWN:
-            screen.blit(
-                self.head_image_down,
-                (self.positions[0][0], self.positions[0][1])
-            )
-        elif self.direction == LEFT:
-            screen.blit(
-                self.head_image_left,
-                (self.positions[0][0], self.positions[0][1])
-            )
-        elif self.direction == UP:
-            screen.blit(
-                self.head_image_up,
-                (self.positions[0][0], self.positions[0][1])
-            )
+        head_x, head_y = self.get_head_position()
+        screen.blit(
+            {
+                RIGHT: self.head_image_right,
+                DOWN: self.head_image_down,
+                LEFT: self.head_image_left,
+                UP: self.head_image_up
+            }[self.direction],
+            (head_x % SCREEN_WIDTH, head_y % SCREEN_HEIGHT)
+        )
         self.last = (self.positions[-1][0], self.positions[-1][1])
 
     def eat_trash(self, surface):
@@ -214,13 +209,7 @@ class Rock(GameObject):
         super().__init__()
         self.image = pygame.image.load(img_rock).convert_alpha()
         self.positions = self.randomize_positions(num)
-
-    def randomize_positions(self, num: int = 7):
-        """
-        Генерирует случайные координаты на сетке игрового
-        поля для расположения на них нескольких объектов мусора.
-        """
-        return self._random_positions_generator(1, num)
+        self.randomize_positions(num)
 
     def draw(self, surface):
         """Отрисовывает камни на игровой поверхности."""
@@ -235,13 +224,7 @@ class Trash(GameObject):
         super().__init__()
         self.positions = self.randomize_positions(num)
         self.image = pygame.image.load(img_trash).convert_alpha()
-
-    def randomize_positions(self, num: int = 1):
-        """
-        Генерирует случайные координаты на сетке игрового
-        поля для расположения на них нескольких объектов мусора.
-        """
-        return self._random_positions_generator(1, num)
+        self.randomize_positions(num)
 
     def draw(self, surface):
         """Отрисовывает мусор на игровой поверхности."""
@@ -249,7 +232,6 @@ class Trash(GameObject):
             screen.blit(self.image, (position[0], position[1]))
 
 
-# Функция обработки действий пользователя
 def handle_keys(game_object: Snake):
     """Функция-обработчик событий нажатий клавиш."""
     for event in pygame.event.get():
