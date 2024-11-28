@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from random import choice
 
 import pygame
@@ -57,9 +58,10 @@ class GameObject:
         self.body_color = SNAKE_COLOR
         self.image = None
 
+    @abstractmethod
     def draw(self, surface):
         """Отрисовывает объект на игровой поверхности."""
-        screen.blit(self.image, (self.position[0], self.position[1]))
+        pass
 
     @staticmethod
     def _random_positions_generator(from_, to_):
